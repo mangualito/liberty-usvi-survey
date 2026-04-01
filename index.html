@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Liberty USVI Survey</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="USVI Survey">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-startup-image" href="icon-512.png">
+
+<!-- Fonts with offline fallback -->
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- PDF generated inline, no external deps needed -->
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy-mid: #112240;
+    --navy-light: #1d3461;
+    --accent: #e8a020;
+    --accent-dim: #c4851a;
+    --steel: #4a6fa5;
+    --ice: #a8c4e0;
+    --white: #f4f7fb;
+    --muted: #7a91ab;
+    --danger: #c0392b;
+    --success: #27ae60;
+    --border: rgba(168,196,224,0.18);
+    --card-bg: rgba(17,34,64,0.85);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 80% 40% at 50% 0%, rgba(74,111,165,0.18) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(168,196,224,0.03) 40px, rgba(168,196,224,0.03) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(168,196,224,0.03) 40px, rgba(168,196,224,0.03) 41px);
+  }
+
+  /* ── TOP BANNER ── */
+  .banner {
+    background: linear-gradient(90deg, var(--navy-mid) 0%, var(--navy-light) 60%, var(--navy-mid) 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+  }
+  .banner-left { display: flex; flex-direction: column; gap: 2px; }
+  .banner-org {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .banner-sub {
+    font-size: 11px;
+    color: var(--ice);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .banner-badge {
+    background: var(--accent);
+    color: var(--navy);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    background: var(--navy-mid);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .progress-steps {
+    display: flex;
+    gap: 0;
+    min-width: max-content;
+  }
+  .step-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .step-btn:hover { color: var(--ice); }
+  .step-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .step-btn.done { color: var(--success); }
+  .step-btn.done::after {
+    content: '✓';
+    margin-left: 6px;
+    font-size: 10px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main { max-width: 900px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* ── SECTION CARD ── */
+  .section-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    animation: fadeUp 0.3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  .section-header {
+    background: linear-gradient(90deg, var(--navy-light), transparent);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    color: var(--navy);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  .section-body { padding: 20px; }
+
+  /* ── FORM FIELDS ── */
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .field-grid.thirds { grid-template-columns: 1fr 1fr 1fr; }
+  .field-grid.full { grid-template-columns: 1fr; }
+  @media (max-width: 600px) {
+    .field-grid, .field-grid.thirds { grid-template-columns: 1fr; }
+  }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ice);
+  }
+  .field label .req { color: var(--accent); margin-left: 2px; }
+  .field input, .field select, .field textarea {
+    background: rgba(10,22,40,0.7);
+    border: 1px solid rgba(168,196,224,0.25);
+    border-radius: 4px;
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(232,160,32,0.15);
+  }
+  .field select option { background: var(--navy-mid); }
+  .field textarea { resize: vertical; min-height: 80px; }
+
+  /* ── RADIO / CHECK GROUPS ── */
+  .radio-group, .check-group {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .radio-group label, .check-group label {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(10,22,40,0.5);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--white);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .radio-group label:hover, .check-group label:hover {
+    border-color: var(--accent);
+    background: rgba(232,160,32,0.08);
+  }
+  .radio-group input[type=radio], .check-group input[type=checkbox] {
+    width: auto; padding: 0;
+    accent-color: var(--accent);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 18px 0;
+  }
+  .subsection-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── DYNAMIC ROWS ── */
+  .row-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+  .dynamic-row {
+    background: rgba(10,22,40,0.6);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 14px;
+    position: relative;
+    animation: fadeUp 0.2s ease;
+  }
+  .dynamic-row .row-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .row-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .btn-remove {
+    background: rgba(192,57,43,0.15);
+    border: 1px solid rgba(192,57,43,0.4);
+    color: #e74c3c;
+    border-radius: 3px;
+    padding: 3px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: background 0.2s;
+  }
+  .btn-remove:hover { background: rgba(192,57,43,0.3); }
+
+  .btn-add {
+    background: rgba(232,160,32,0.1);
+    border: 1px dashed rgba(232,160,32,0.5);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 9px 18px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s, border-color 0.2s;
+    margin-top: 4px;
+  }
+  .btn-add:hover { background: rgba(232,160,32,0.18); border-color: var(--accent); }
+
+  /* ── TME TABLE ── */
+  .tme-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  .tme-table th {
+    background: rgba(10,22,40,0.8);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ice);
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  .tme-table td {
+    border: 1px solid var(--border);
+    padding: 6px 8px;
+    vertical-align: top;
+  }
+  .tme-table td input, .tme-table td select {
+    background: transparent;
+    border: none;
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    padding: 3px 4px;
+    outline: none;
+    width: 100%;
+  }
+  .tme-table td input:focus, .tme-table td select:focus {
+    background: rgba(232,160,32,0.08);
+    border-radius: 3px;
+  }
+  .tme-table td select option { background: var(--navy-mid); }
+
+  /* ── PHOTO SECTION ── */
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .photo-slot {
+    border: 1px dashed rgba(168,196,224,0.3);
+    border-radius: 5px;
+    background: rgba(10,22,40,0.5);
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .photo-slot:hover { border-color: var(--accent); background: rgba(232,160,32,0.05); }
+  .photo-slot input[type=file] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .photo-slot-label {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px; padding: 12px; text-align: center;
+    pointer-events: none;
+  }
+  .photo-slot-icon { font-size: 24px; color: var(--muted); }
+  .photo-slot-name {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .photo-slot img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute; inset: 0;
+  }
+  .photo-slot .photo-check {
+    position: absolute; top: 6px; right: 6px;
+    background: var(--success);
+    color: white;
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    display: none;
+    align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+  }
+  .photo-slot.has-photo .photo-check { display: flex; }
+
+  /* ── NOTES FIELD ── */
+  .notes-field {
+    width: 100%;
+    background: rgba(10,22,40,0.7);
+    border: 1px solid rgba(168,196,224,0.25);
+    border-radius: 4px;
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.2s;
+    margin-top: 8px;
+  }
+  .notes-field:focus { border-color: var(--accent); }
+
+  /* ── NAV BUTTONS ── */
+  .nav-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--navy-mid);
+    border-top: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+  }
+  .btn-nav {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    padding: 11px 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-prev {
+    background: rgba(168,196,224,0.1);
+    border: 1px solid var(--border);
+    color: var(--ice);
+  }
+  .btn-prev:hover { background: rgba(168,196,224,0.2); }
+  .btn-next {
+    background: var(--accent);
+    color: var(--navy);
+  }
+  .btn-next:hover { background: var(--accent-dim); }
+  .btn-export {
+    background: var(--success);
+    color: white;
+  }
+  .btn-export:hover { background: #229954; }
+
+  .page-indicator {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  /* ── HIDDEN PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── PAGE TITLE ── */
+  .page-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .page-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── CONDITION BADGES ── */
+  .cond-select {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .cond-opt {
+    padding: 5px 12px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+  .cond-opt[data-val="good"] { background: rgba(39,174,96,0.15); border-color: rgba(39,174,96,0.4); color: #2ecc71; }
+  .cond-opt[data-val="fair"] { background: rgba(243,156,18,0.15); border-color: rgba(243,156,18,0.4); color: #f39c12; }
+  .cond-opt[data-val="poor"] { background: rgba(192,57,43,0.15); border-color: rgba(192,57,43,0.4); color: #e74c3c; }
+  .cond-opt.selected[data-val="good"] { background: rgba(39,174,96,0.35); }
+  .cond-opt.selected[data-val="fair"] { background: rgba(243,156,18,0.35); }
+  .cond-opt.selected[data-val="poor"] { background: rgba(192,57,43,0.35); }
+
+  /* ── COMPLETION SCREEN ── */
+  .complete-screen {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .complete-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+  }
+  .complete-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 36px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .complete-sub {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 32px;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    max-width: 500px;
+    margin: 0 auto 32px;
+    text-align: left;
+  }
+  .summary-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 14px 16px;
+  }
+  .summary-item .s-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .summary-item .s-val {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--navy); }
+  ::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- BANNER -->
+<div class="banner">
+  <div class="banner-left">
+    <div class="banner-org">Liberty · AT&amp;T Legacy</div>
+    <div class="banner-sub">USVI Site Survey &amp; Existing Conditions Report</div>
+  </div>
+  <div class="banner-badge">Field Form v1.0</div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-steps">
+    <button class="step-btn active" onclick="goTo(0)">01 Site Info</button>
+    <button class="step-btn" onclick="goTo(1)">02 Power &amp; Metering</button>
+    <button class="step-btn" onclick="goTo(2)">03 Ground Pad</button>
+    <button class="step-btn" onclick="goTo(3)">04 H-Frames &amp; Ice Bridges</button>
+    <button class="step-btn" onclick="goTo(4)">05 Tower Equipment</button>
+    <button class="step-btn" onclick="goTo(5)">06 Photos</button>
+    <button class="step-btn" onclick="goTo(6)">07 Review</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══════════════════════════════════════
+     PAGE 0 — SITE INFORMATION
+══════════════════════════════════════ -->
+<div class="page active" id="page-0">
+  <div class="page-title">Site Information</div>
+  <div class="page-desc">General site identification, location, and access details.</div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">📍</div>
+      <div class="section-title">Site Identification</div>
+    </div>
+    <div class="section-body">
+      <div class="field-grid">
+        <div class="field">
+          <label>Site ID / Name <span class="req">*</span></label>
+          <input type="text" id="siteId" placeholder="e.g. VI-STX-001">
+        </div>
+        <div class="field">
+          <label>Market / Region</label>
+          <select id="market">
+            <option value="">— Select —</option>
+            <option>STX – St. Croix</option>
+            <option>STT – St. Thomas</option>
+            <option>STJ – St. John</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Survey Date <span class="req">*</span></label>
+          <input type="date" id="surveyDate">
+        </div>
+        <div class="field">
+          <label>Surveyor Name <span class="req">*</span></label>
+          <input type="text" id="surveyorName" placeholder="Full name">
+        </div>
+        <div class="field">
+          <label>Company / Subcontractor</label>
+          <input type="text" id="company" placeholder="Company name">
+        </div>
+        <div class="field">
+          <label>Contact Phone</label>
+          <input type="tel" id="phone" placeholder="(340) 000-0000">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">🗺️</div>
+      <div class="section-title">Location &amp; Access</div>
+    </div>
+    <div class="section-body">
+      <div class="field-grid">
+        <div class="field">
+          <label>Street Address / Location Description</label>
+          <input type="text" id="address" placeholder="Address or landmark description">
+        </div>
+        <div class="field">
+          <label>GPS Coordinates (Lat, Long)</label>
+          <input type="text" id="gps" placeholder="e.g. 17.7289, -64.7420">
+        </div>
+        <div class="field">
+          <label>Access Type</label>
+          <select id="accessType">
+            <option value="">— Select —</option>
+            <option>Gated (key/combo lock)</option>
+            <option>Gated (padlock)</option>
+            <option>Open access</option>
+            <option>Rooftop</option>
+            <option>Indoor</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Gate Combo / Key Info</label>
+          <input type="text" id="gateInfo" placeholder="Combo or key description">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">🗼</div>
+      <div class="section-title">Tower / Structure</div>
+    </div>
+    <div class="section-body">
+      <div class="field-grid thirds">
+        <div class="field">
+          <label>Tower Type</label>
+          <select id="towerType">
+            <option value="">— Select —</option>
+            <option>Self-Support (SST)</option>
+            <option>Monopole</option>
+            <option>Guyed Tower</option>
+            <option>Rooftop</option>
+            <option>Water Tank</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tower Height (ft)</label>
+          <input type="number" id="towerHeight" placeholder="e.g. 195">
+        </div>
+        <div class="field">
+          <label>Tower Owner</label>
+          <input type="text" id="towerOwner" placeholder="e.g. Crown Castle, SBA">
+        </div>
+      </div>
+      <div class="field-grid thirds">
+        <div class="field">
+          <label>Tower Condition</label>
+          <div class="cond-select" data-field="towerCondition">
+            <div class="cond-opt" data-val="good">Good</div>
+            <div class="cond-opt" data-val="fair">Fair</div>
+            <div class="cond-opt" data-val="poor">Poor</div>
+          </div>
+          <input type="hidden" id="towerCondition">
+        </div>
+        <div class="field">
+          <label>FAA Lighting</label>
+          <div class="radio-group">
+            <label><input type="radio" name="faaLight" value="Yes"> Yes</label>
+            <label><input type="radio" name="faaLight" value="No"> No</label>
+            <label><input type="radio" name="faaLight" value="N/A"> N/A</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Lighting Condition</label>
+          <select id="lightingCond">
+            <option value="">— Select —</option>
+            <option>Operational</option>
+            <option>Partial Outage</option>
+            <option>Non-Operational</option>
+            <option>N/A</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>General Site Notes</label>
+        <textarea class="notes-field" id="siteNotes" placeholder="Access issues, security, vegetation, general observations..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 1 — POWER & METERING
+══════════════════════════════════════ -->
+<div class="page" id="page-1">
+  <div class="page-title">Power &amp; Metering</div>
+  <div class="page-desc">WAPA utility service, metering details, and on-site generation.</div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">⚡</div>
+      <div class="section-title">WAPA Utility Service</div>
+    </div>
+    <div class="section-body">
+      <div class="field-grid thirds">
+        <div class="field">
+          <label>Utility Provider</label>
+          <input type="text" value="WAPA" id="utilityProvider">
+        </div>
+        <div class="field">
+          <label>Account Number</label>
+          <input type="text" id="wapaAccount" placeholder="WAPA account #">
+        </div>
+        <div class="field">
+          <label>Meter Number</label>
+          <input type="text" id="meterNumber" placeholder="Meter ID">
+        </div>
+      </div>
+      <div class="field-grid thirds">
+        <div class="field">
+          <label>Service Voltage</label>
+          <select id="voltage">
+            <option value="">— Select —</option>
+            <option>120V Single Phase</option>
+            <option>120/240V Single Phase</option>
+            <option>120/208V 3-Phase</option>
+            <option>277/480V 3-Phase</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Service Amperage</label>
+          <select id="amperage">
+            <option value="">— Select —</option>
+            <option>100A</option>
+            <option>200A</option>
+            <option>400A</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Meter Location</label>
+          <select id="meterLocation">
+            <option value="">— Select —</option>
+            <option>On utility pole</option>
+            <option>On compound wall</option>
+            <option>On equipment shelter</option>
+            <option>On H-frame</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Meter Condition</label>
+          <div class="cond-select" data-field="meterCondition">
+            <div class="cond-opt" data-val="good">Good</div>
+            <div class="cond-opt" data-val="fair">Fair</div>
+            <div class="cond-opt" data-val="poor">Poor</div>
+          </div>
+          <input type="hidden" id="meterCondition">
+        </div>
+        <div class="field">
+          <label>Disconnect / Main Breaker</label>
+          <select id="mainBreaker">
+            <option value="">— Select —</option>
+            <option>Present – Operational</option>
+            <option>Present – Non-Operational</option>
+            <option>Not Present</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Power / Metering Notes</label>
+        <textarea class="notes-field" id="powerNotes" placeholder="Observations on utility feed, metering enclosure, weatherhead, conduit run..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">🔋</div>
+      <div class="section-title">Generator</div>
+    </div>
+    <div class="section-body">
+      <div class="field-grid">
+        <div class="field">
+          <label>Generator Present</label>
+          <div class="radio-group">
+            <label><input type="radio" name="genPresent" value="Yes" onchange="toggleGen(true)"> Yes</label>
+            <label><input type="radio" name="genPresent" value="No" onchange="toggleGen(false)"> No</label>
+          </div>
+        </div>
+      </div>
+      <div id="gen-details">
+        <hr class="divider">
+        <div class="field-grid thirds">
+          <div class="field">
+            <label>Manufacturer</label>
+            <input type="text" id="genMake" placeholder="e.g. Generac, Kohler, CAT">
+          </div>
+          <div class="field">
+            <label>Model</label>
+            <input type="text" id="genModel" placeholder="Model number">
+          </div>
+          <div class="field">
+            <label>kW Rating</label>
+            <input type="number" id="genKW" placeholder="e.g. 30">
+          </div>
+        </div>
+        <div class="field-grid thirds">
+          <div class="field">
+            <label>Fuel Type</label>
+            <select id="genFuel">
+              <option value="">— Select —</option>
+              <option>Diesel</option>
+              <option>Natural Gas</option>
+              <option>Propane</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Tank Size (gal)</label>
+            <input type="number" id="genTank" placeholder="e.g. 100">
+          </div>
+          <div class="field">
+            <label>Fuel Level (%)</label>
+            <input type="number" id="genFuelLevel" placeholder="e.g. 75" min="0" max="100">
+          </div>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label>ATS Present</label>
+            <div class="radio-group">
+              <label><input type="radio" name="atsPresent" value="Yes"> Yes</label>
+              <label><input type="radio" name="atsPresent" value="No"> No</label>
+            </div>
+          </div>
+          <div class="field">
+            <label>Generator Condition</label>
+            <div class="cond-select" data-field="genCondition">
+              <div class="cond-opt" data-val="good">Good</div>
+              <div class="cond-opt" data-val="fair">Fair</div>
+              <div class="cond-opt" data-val="poor">Poor</div>
+            </div>
+            <input type="hidden" id="genCondition">
+          </div>
+        </div>
+        <div class="field">
+          <label>Generator Notes</label>
+          <textarea class="notes-field" id="genNotes" placeholder="Hours on meter, last service date, fuel alarm, enclosure condition..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 2 — GROUND PAD EQUIPMENT
+══════════════════════════════════════ -->
+<div class="page" id="page-2">
+  <div class="page-title">Ground Pad Equipment</div>
+  <div class="page-desc">Document each cabinet, shelter, or unit on the equipment pad.</div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">🏗️</div>
+      <div class="section-title">Pad Overview</div>
+    </div>
+    <div class="section-body">
+      <div class="field-grid thirds">
+        <div class="field">
+          <label>Pad Type</label>
+          <select id="padType">
+            <option value="">— Select —</option>
+            <option>Concrete Pad (open)</option>
+            <option>Fenced Compound</option>
+            <option>Rooftop</option>
+            <option>Equipment Shelter</option>
+            <option>Cabinet Only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Pad Condition</label>
+          <div class="cond-select" data-field="padCondition">
+            <div class="cond-opt" data-val="good">Good</div>
+            <div class="cond-opt" data-val="fair">Fair</div>
+            <div class="cond-opt" data-val="poor">Poor</div>
+          </div>
+          <input type="hidden" id="padCondition">
+        </div>
+        <div class="field">
+          <label>Fencing / Security</label>
+          <select id="fencing">
+            <option value="">— Select —</option>
+            <option>Chain Link</option>
+            <option>Concrete Wall</option>
+            <option>No Fencing</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Pad Notes</label>
+        <textarea class="notes-field" id="padNotes" placeholder="Dimensions, drainage, vegetation encroachment, concrete cracks..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">📦</div>
+      <div class="section-title">Cabinet / Unit Inventory</div>
+    </div>
+    <div class="section-body">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Add one entry per cabinet, shelter, or equipment unit on the ground pad.</p>
+      <div class="row-list" id="cabinet-list"></div>
+      <button class="btn-add" onclick="addCabinet()">+ Add Cabinet / Unit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 3 — H-FRAMES & ICE BRIDGES
+══════════════════════════════════════ -->
+<div class="page" id="page-3">
+  <div class="page-title">H-Frames &amp; Ice Bridges</div>
+  <div class="page-desc">Document each cable run with its support structure details.</div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">🔩</div>
+      <div class="section-title">H-Frame / Ice Bridge — Cable Runs</div>
+    </div>
+    <div class="section-body">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Log each individual cable run supported by an H-frame or ice bridge.</p>
+      <div class="row-list" id="hframe-list"></div>
+      <button class="btn-add" onclick="addHFrame()">+ Add Cable Run</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 4 — TOWER MOUNTED EQUIPMENT
+══════════════════════════════════════ -->
+<div class="page" id="page-4">
+  <div class="page-title">Tower Mounted Equipment</div>
+  <div class="page-desc">Liberty / AT&T Legacy equipment installed on the tower structure.</div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">📡</div>
+      <div class="section-title">Liberty Sector Configuration</div>
+    </div>
+    <div class="section-body">
+      <div class="field-grid">
+        <div class="field">
+          <label>Number of Sectors</label>
+          <select id="numSectors" onchange="buildTME()">
+            <option value="">— Select —</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3 (Standard)</option>
+            <option value="4">4</option>
+            <option value="6">6</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Liberty Mount Height (ft AGL)</label>
+          <input type="number" id="libertyHeight" placeholder="e.g. 150">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tme-sectors"></div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">🔌</div>
+      <div class="section-title">Other Tower Equipment</div>
+    </div>
+    <div class="section-body">
+      <div class="row-list" id="other-tme-list"></div>
+      <button class="btn-add" onclick="addOtherTME()">+ Add Other Equipment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 5 — PHOTO DOCUMENTATION
+══════════════════════════════════════ -->
+<div class="page" id="page-5">
+  <div class="page-title">Photo Documentation</div>
+  <div class="page-desc">Upload required and supplemental photos. All shots are required unless marked optional.</div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">📸</div>
+      <div class="section-title">Site &amp; Ground Level</div>
+    </div>
+    <div class="section-body">
+      <div class="photo-grid" id="photos-ground"></div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">⚡</div>
+      <div class="section-title">Power, Metering &amp; Generator</div>
+    </div>
+    <div class="section-body">
+      <div class="photo-grid" id="photos-power"></div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">🔩</div>
+      <div class="section-title">H-Frames &amp; Ice Bridges</div>
+    </div>
+    <div class="section-body">
+      <div class="photo-grid" id="photos-hframe"></div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">📡</div>
+      <div class="section-title">Tower &amp; Liberty TME</div>
+    </div>
+    <div class="section-body">
+      <div class="photo-grid" id="photos-tower"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 6 — REVIEW & EXPORT
+══════════════════════════════════════ -->
+<div class="page" id="page-6">
+  <div class="page-title">Review &amp; Export</div>
+  <div class="page-desc">Confirm survey completion and download the PDF report.</div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">✅</div>
+      <div class="section-title">Survey Summary</div>
+    </div>
+    <div class="section-body" id="review-body">
+      <!-- filled dynamically -->
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">📝</div>
+      <div class="section-title">Final Notes &amp; Certifications</div>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label>Overall Site Notes / Summary</label>
+        <textarea class="notes-field" id="finalNotes" placeholder="General observations, safety concerns, follow-up items required..." style="min-height:120px;"></textarea>
+      </div>
+      <hr class="divider">
+      <div class="field-grid">
+        <div class="field">
+          <label>Surveyor Signature (type full name)</label>
+          <input type="text" id="sigName" placeholder="Type full name as signature">
+        </div>
+        <div class="field">
+          <label>Date Completed</label>
+          <input type="date" id="sigDate">
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px;">
+        By entering your name above, you certify that the information recorded in this survey is accurate and complete to the best of your knowledge.
+      </p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- NAV BAR -->
+<div class="nav-bar">
+  <button class="btn-nav btn-prev" id="btn-prev" onclick="navigate(-1)">← Back</button>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+    <span class="page-indicator" id="page-indicator">Step 1 of 7</span>
+    <button onclick="saveDraft()" style="background:none;border:none;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;padding:0;">💾 Save Draft</button>
+  </div>
+  <button class="btn-nav btn-next" id="btn-next" onclick="navigate(1)">Next →</button>
+</div>
+
+<!-- DRAFT TOAST -->
+<div id="draft-toast" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#27ae60;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 22px;border-radius:5px;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:300;white-space:nowrap;"></div>
+
+<!-- DRAFT RESTORE BANNER -->
+<div id="restore-banner" style="display:none;position:fixed;top:76px;left:0;right:0;background:#1d3461;border-bottom:2px solid #e8a020;padding:12px 20px;z-index:200;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+  <div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:#e8a020;letter-spacing:1px;">📋 Draft Found</div>
+    <div id="restore-info" style="font-size:12px;color:#a8c4e0;margin-top:2px;"></div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button onclick="restoreDraft()" style="background:#e8a020;border:none;color:#0a1628;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 16px;border-radius:4px;cursor:pointer;">Restore</button>
+    <button onclick="dismissRestore()" style="background:rgba(168,196,224,.1);border:1px solid rgba(168,196,224,.2);color:#a8c4e0;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-radius:4px;cursor:pointer;">Dismiss</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────
+let currentPage = 0;
+const totalPages = 7;
+let cabinetCount = 0;
+let hframeCount = 0;
+let otherTMECount = 0;
+const photoData = {};
+
+// ── PAGE NAVIGATION ────────────────────
+function goTo(n) {
+  document.getElementById(`page-${currentPage}`).classList.remove('active');
+  document.querySelectorAll('.step-btn')[currentPage].classList.remove('active');
+  currentPage = n;
+  document.getElementById(`page-${currentPage}`).classList.add('active');
+  const btns = document.querySelectorAll('.step-btn');
+  btns[currentPage].classList.add('active');
+  updateNav();
+  window.scrollTo({top:0, behavior:'smooth'});
+  if (currentPage === 6) buildReview();
+}
+
+function navigate(dir) {
+  const next = currentPage + dir;
+  if (next < 0 || next >= totalPages) return;
+  goTo(next);
+}
+
+function updateNav() {
+  const prev = document.getElementById('btn-prev');
+  const next = document.getElementById('btn-next');
+  const ind  = document.getElementById('page-indicator');
+  prev.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
+  ind.textContent = `Step ${currentPage+1} of ${totalPages}`;
+  if (currentPage === totalPages - 1) {
+    next.textContent = '⬇ Download PDF';
+    next.className = 'btn-nav btn-export';
+    next.onclick = generatePDF;
+  } else {
+    next.textContent = 'Next →';
+    next.className = 'btn-nav btn-next';
+    next.onclick = () => navigate(1);
+  }
+}
+
+// ── CONDITION SELECTORS ────────────────
+document.querySelectorAll('.cond-select').forEach(group => {
+  group.querySelectorAll('.cond-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      group.querySelectorAll('.cond-opt').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      const fieldId = group.dataset.field;
+      if (fieldId) document.getElementById(fieldId).value = opt.dataset.val;
+    });
+  });
+});
+
+// ── GENERATOR TOGGLE ──────────────────
+function toggleGen(show) {
+  document.getElementById('gen-details').style.display = show ? 'block' : 'none';
+}
+toggleGen(false);
+
+// ── CABINET ROWS ──────────────────────
+function addCabinet() {
+  cabinetCount++;
+  const id = `cab-${cabinetCount}`;
+  const div = document.createElement('div');
+  div.className = 'dynamic-row';
+  div.id = id;
+  div.innerHTML = `
+    <div class="row-header">
+      <div class="row-label">Cabinet / Unit #${cabinetCount}</div>
+      <button class="btn-remove" onclick="removeRow('${id}')">✕ Remove</button>
+    </div>
+    <div class="field-grid thirds">
+      <div class="field"><label>Equipment Type</label>
+        <select>
+          <option value="">— Select —</option>
+          <option>Equipment Shelter</option>
+          <option>BDCN / BTS Cabinet</option>
+          <option>BBU Cabinet</option>
+          <option>Power Cabinet / HVDC</option>
+          <option>Battery Cabinet</option>
+          <option>Transfer Switch / ATS</option>
+          <option>Rectifier Cabinet</option>
+          <option>Fiber Termination</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Manufacturer</label>
+        <input type="text" placeholder="e.g. Ericsson, Nokia">
+      </div>
+      <div class="field"><label>Model / ID</label>
+        <input type="text" placeholder="Model or asset tag">
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Carrier / Owner</label>
+        <select>
+          <option>Liberty / AT&T</option>
+          <option>Site Owner</option>
+          <option>Third Party</option>
+          <option>Unknown</option>
+        </select>
+      </div>
+      <div class="field"><label>Condition</label>
+        <div class="cond-select" data-field="">
+          <div class="cond-opt" data-val="good">Good</div>
+          <div class="cond-opt" data-val="fair">Fair</div>
+          <div class="cond-opt" data-val="poor">Poor</div>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>Notes / Description</label>
+      <textarea class="notes-field" placeholder="Dimensions, serial number, physical condition, visible damage..."></textarea>
+    </div>
+  `;
+  document.getElementById('cabinet-list').appendChild(div);
+  bindCondSelectors(div);
+}
+
+// ── H-FRAME / ICE BRIDGE ROWS ─────────
+function addHFrame() {
+  hframeCount++;
+  const id = `hf-${hframeCount}`;
+  const div = document.createElement('div');
+  div.className = 'dynamic-row';
+  div.id = id;
+  div.innerHTML = `
+    <div class="row-header">
+      <div class="row-label">Cable Run #${hframeCount}</div>
+      <button class="btn-remove" onclick="removeRow('${id}')">✕ Remove</button>
+    </div>
+    <div class="field-grid thirds">
+      <div class="field"><label>Support Structure Type</label>
+        <select>
+          <option value="">— Select —</option>
+          <option>H-Frame</option>
+          <option>Ice Bridge</option>
+          <option>Both H-Frame + Ice Bridge</option>
+          <option>Cable Tray</option>
+          <option>None / Direct Burial</option>
+        </select>
+      </div>
+      <div class="field"><label>Run ID / Label</label>
+        <input type="text" placeholder="e.g. Run A, Cable Bridge 1">
+      </div>
+      <div class="field"><label>Cable Type</label>
+        <select>
+          <option value="">— Select —</option>
+          <option>Coax (7/8")</option>
+          <option>Coax (1-5/8")</option>
+          <option>Coax (1/2")</option>
+          <option>Fiber Optic</option>
+          <option>DC Power Cable</option>
+          <option>AC Power Cable</option>
+          <option>Mixed</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid thirds">
+      <div class="field"><label>Run Length (ft, approx)</label>
+        <input type="number" placeholder="e.g. 50">
+      </div>
+      <div class="field"><label># of Cables in Run</label>
+        <input type="number" placeholder="e.g. 6">
+      </div>
+      <div class="field"><label>Origin → Destination</label>
+        <input type="text" placeholder="e.g. Shelter → Tower Base">
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>H-Frame / Ice Bridge Condition</label>
+        <div class="cond-select" data-field="">
+          <div class="cond-opt" data-val="good">Good</div>
+          <div class="cond-opt" data-val="fair">Fair</div>
+          <div class="cond-opt" data-val="poor">Poor</div>
+        </div>
+      </div>
+      <div class="field"><label>Grounding / Bond Present</label>
+        <div class="radio-group">
+          <label><input type="radio" name="ground-${hframeCount}" value="Yes"> Yes</label>
+          <label><input type="radio" name="ground-${hframeCount}" value="No"> No</label>
+          <label><input type="radio" name="ground-${hframeCount}" value="Unknown"> Unknown</label>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>Notes</label>
+      <textarea class="notes-field" placeholder="Cable labels, visible damage, missing clamps, weatherproofing issues..."></textarea>
+    </div>
+  `;
+  document.getElementById('hframe-list').appendChild(div);
+  bindCondSelectors(div);
+}
+
+// ── TME TABLE BUILD ────────────────────
+function buildTME() {
+  const n = parseInt(document.getElementById('numSectors').value) || 0;
+  const container = document.getElementById('tme-sectors');
+  container.innerHTML = '';
+  const sectorLabels = ['Alpha (α)', 'Beta (β)', 'Gamma (γ)', 'Delta (δ)', 'Epsilon (ε)', 'Zeta (ζ)'];
+  const azimuth = [0, 120, 240, 90, 180, 270];
+  const eqTypes = ['Panel Antenna','RRU / RRH','Surge Arrestor','Coax / Jumper Cable','Fiber Cable','GPS Antenna','Mounting Hardware','Other'];
+
+  for (let s = 0; s < n; s++) {
+    const card = document.createElement('div');
+    card.className = 'section-card';
+    card.innerHTML = `
+      <div class="section-header">
+        <div class="section-icon" style="background:var(--steel);font-size:12px;font-weight:900;">${sectorLabels[s].charAt(0)}</div>
+        <div class="section-title">Sector ${sectorLabels[s]}</div>
+      </div>
+      <div class="section-body">
+        <div class="field-grid thirds" style="margin-bottom:14px;">
+          <div class="field"><label>Sector Azimuth (°)</label>
+            <input type="number" value="${azimuth[s]}" placeholder="e.g. 0">
+          </div>
+          <div class="field"><label>Centerline Height (ft AGL)</label>
+            <input type="number" placeholder="e.g. 150">
+          </div>
+          <div class="field"><label>Sector Condition</label>
+            <div class="cond-select" data-field="">
+              <div class="cond-opt" data-val="good">Good</div>
+              <div class="cond-opt" data-val="fair">Fair</div>
+              <div class="cond-opt" data-val="poor">Poor</div>
+            </div>
+          </div>
+        </div>
+        <div class="subsection-label">Equipment Items</div>
+        <table class="tme-table">
+          <thead>
+            <tr>
+              <th>Equipment Type</th>
+              <th>Qty</th>
+              <th>Mount Height (ft AGL)</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="tme-body-${s}">
+          </tbody>
+        </table>
+        <button class="btn-add" style="margin-top:8px;" onclick="addTMERow(${s})">+ Add Equipment Item</button>
+      </div>
+    `;
+    container.appendChild(card);
+    bindCondSelectors(card);
+    // Pre-populate common rows
+    ['Panel Antenna','RRU / RRH','Surge Arrestor'].forEach(t => addTMERow(s, t));
+  }
+}
+
+function addTMERow(sectorIdx, preType='') {
+  const tbody = document.getElementById(`tme-body-${sectorIdx}`);
+  if (!tbody) return;
+  const types = ['Panel Antenna','RRU / RRH','Surge Arrestor','Coax / Jumper Cable','Fiber Cable','GPS Antenna','Microwave Dish','Mounting Hardware','Other'];
+  const opts = types.map(t => `<option${t===preType?' selected':''}>${t}</option>`).join('');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><select style="min-width:140px;"><option value="">— Select —</option>${opts}</select></td>
+    <td><input type="number" placeholder="1" style="width:50px;"></td>
+    <td><input type="number" placeholder="ft AGL" style="width:80px;"></td>
+    <td><input type="text" placeholder="Notes..."></td>
+    <td><button onclick="this.closest('tr').remove()" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:16px;padding:0 6px;">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+// ── OTHER TME ROWS ─────────────────────
+function addOtherTME() {
+  otherTMECount++;
+  const id = `otme-${otherTMECount}`;
+  const div = document.createElement('div');
+  div.className = 'dynamic-row';
+  div.id = id;
+  div.innerHTML = `
+    <div class="row-header">
+      <div class="row-label">Other Equipment #${otherTMECount}</div>
+      <button class="btn-remove" onclick="removeRow('${id}')">✕ Remove</button>
+    </div>
+    <div class="field-grid thirds">
+      <div class="field"><label>Equipment Type</label>
+        <input type="text" placeholder="e.g. MW Dish, GPS, Lighting">
+      </div>
+      <div class="field"><label>Quantity</label>
+        <input type="number" placeholder="1">
+      </div>
+      <div class="field"><label>Mount Height (ft AGL)</label>
+        <input type="number" placeholder="ft">
+      </div>
+    </div>
+    <div class="field"><label>Notes</label>
+      <textarea class="notes-field" placeholder="Owner, carrier, condition, notes..."></textarea>
+    </div>
+  `;
+  document.getElementById('other-tme-list').appendChild(div);
+}
+
+// ── PHOTO SLOTS ────────────────────────
+const photoSlots = {
+  'photos-ground': [
+    'Site Entrance & Access Road',
+    'Ground Pad – North View',
+    'Ground Pad – South View',
+    'Ground Pad – East View',
+    'Ground Pad – West View',
+    'Compound / Fencing Overview',
+  ],
+  'photos-power': [
+    'WAPA Meter (overall)',
+    'Meter Number Closeup',
+    'Main Power Panel / Breaker',
+    'Power Conduit / Weatherhead',
+    'Generator (overall)',
+    'Generator ID Label Closeup',
+    'ATS Panel',
+  ],
+  'photos-hframe': [
+    'H-Frame / Ice Bridge Overview',
+    'Cable Run Closeup',
+    'Cable Labels / Tags',
+    'Grounding / Bonding Detail',
+  ],
+  'photos-tower': [
+    'Tower Base',
+    'Full Elevation – North',
+    'Full Elevation – South',
+    'Full Elevation – East',
+    'Full Elevation – West',
+    'Liberty TME – Alpha Sector',
+    'Liberty TME – Beta Sector',
+    'Liberty TME – Gamma Sector',
+    'Liberty TME – Antenna Closeup',
+    'Liberty TME – RRU Closeup',
+    'Tower Lighting / FAA',
+    'Additional Tower Detail',
+  ]
+};
+
+Object.entries(photoSlots).forEach(([containerId, labels]) => {
+  const container = document.getElementById(containerId);
+  labels.forEach((label, idx) => {
+    const slotId = `${containerId}-${idx}`;
+    const slot = document.createElement('div');
+    slot.className = 'photo-slot';
+    slot.id = slotId;
+    slot.innerHTML = `
+      <input type="file" accept="image/*" capture="environment" onchange="handlePhoto(event,'${slotId}')">
+      <div class="photo-slot-label">
+        <div class="photo-slot-icon">📷</div>
+        <div class="photo-slot-name">${label}</div>
+      </div>
+      <div class="photo-check">✓</div>
+    `;
+    container.appendChild(slot);
+  });
+});
+
+function handlePhoto(e, slotId) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const slot = document.getElementById(slotId);
+    let img = slot.querySelector('img');
+    if (!img) { img = document.createElement('img'); slot.appendChild(img); }
+    img.src = ev.target.result;
+    slot.classList.add('has-photo');
+    photoData[slotId] = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── HELPERS ────────────────────────────
+function removeRow(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function bindCondSelectors(root) {
+  root.querySelectorAll('.cond-select').forEach(group => {
+    group.querySelectorAll('.cond-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        group.querySelectorAll('.cond-opt').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+      });
+    });
+  });
+}
+
+function getRadio(name) {
+  const sel = document.querySelector(`input[name="${name}"]:checked`);
+  return sel ? sel.value : '—';
+}
+
+function val(id) {
+  const el = document.getElementById(id);
+  return el ? (el.value || '—') : '—';
+}
+
+// ── REVIEW BUILD ───────────────────────
+function buildReview() {
+  const photoCount = Object.keys(photoData).length;
+  const cabCount = document.getElementById('cabinet-list').children.length;
+  const hfCount = document.getElementById('hframe-list').children.length;
+
+  document.getElementById('review-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="summary-item"><div class="s-label">Site ID</div><div class="s-val">${val('siteId')}</div></div>
+      <div class="summary-item"><div class="s-label">Market</div><div class="s-val">${val('market')}</div></div>
+      <div class="summary-item"><div class="s-label">Survey Date</div><div class="s-val">${val('surveyDate')}</div></div>
+      <div class="summary-item"><div class="s-label">Surveyor</div><div class="s-val">${val('surveyorName')}</div></div>
+      <div class="summary-item"><div class="s-label">Tower Type / Height</div><div class="s-val">${val('towerType')} / ${val('towerHeight')} ft</div></div>
+      <div class="summary-item"><div class="s-label">Power Source</div><div class="s-val">WAPA + Generator (${getRadio('genPresent')})</div></div>
+      <div class="summary-item"><div class="s-label">Cabinets / Units</div><div class="s-val">${cabCount} logged</div></div>
+      <div class="summary-item"><div class="s-label">Cable Runs</div><div class="s-val">${hfCount} logged</div></div>
+      <div class="summary-item"><div class="s-label">Sectors</div><div class="s-val">${val('numSectors')}</div></div>
+      <div class="summary-item"><div class="s-label">Photos Uploaded</div><div class="s-val">${photoCount}</div></div>
+    </div>
+  `;
+}
+
+// ── PURE JS PDF GENERATOR (no external libs) ──────────────────
+function generatePDF() {
+  // ── Collect all data first ───────────────────────────────────
+  const siteId2  = (val('siteId')||'USVI-SITE').replace(/[^a-zA-Z0-9-_]/g,'');
+  const dateStr  = (val('surveyDate')||'DATE').replace(/-/g,'');
+  const filename = `Liberty_USVI_Survey_${siteId2}_${dateStr}.pdf`;
+
+  // ── Build report as plain text lines ────────────────────────
+  const lines = [];
+  const L  = (t)       => lines.push(t||'');
+  const HR = ()        => L('─'.repeat(60));
+  const KV = (k,v)     => L(`  ${k}: ${v||'—'}`);
+  const H1 = (t)       => { HR(); L(`  ${t.toUpperCase()}`); HR(); };
+
+  L('LIBERTY / AT&T LEGACY — USVI SITE SURVEY');
+  L('Existing Conditions Report');
+  L(`Generated: ${new Date().toLocaleString()}`);
+  L('');
+
+  H1('1. SITE IDENTIFICATION');
+  KV('Site ID',         val('siteId'));
+  KV('Market',          val('market'));
+  KV('Survey Date',     val('surveyDate'));
+  KV('Surveyor',        val('surveyorName'));
+  KV('Company',         val('company'));
+  KV('Phone',           val('phone'));
+  L('');
+  KV('Address',         val('address'));
+  KV('GPS Coords',      val('gps'));
+  KV('Access Type',     val('accessType'));
+  KV('Gate Info',       val('gateInfo'));
+  L('');
+  KV('Tower Type',      val('towerType'));
+  KV('Tower Height',    val('towerHeight') + ' ft');
+  KV('Tower Owner',     val('towerOwner'));
+  KV('Tower Condition', val('towerCondition'));
+  KV('FAA Lighting',    getRadio('faaLight'));
+  KV('Lighting Cond',   val('lightingCond'));
+  if (val('siteNotes') !== '—') { L(''); L('  Notes: ' + val('siteNotes')); }
+  L('');
+
+  H1('2. POWER & METERING');
+  KV('Utility Provider', val('utilityProvider'));
+  KV('Account Number',   val('wapaAccount'));
+  KV('Meter Number',     val('meterNumber'));
+  KV('Service Voltage',  val('voltage'));
+  KV('Service Amperage', val('amperage'));
+  KV('Meter Location',   val('meterLocation'));
+  KV('Meter Condition',  val('meterCondition'));
+  KV('Main Breaker',     val('mainBreaker'));
+  if (val('powerNotes') !== '—') { L(''); L('  Notes: ' + val('powerNotes')); }
+  L('');
+  KV('Generator Present', getRadio('genPresent'));
+  if (getRadio('genPresent') === 'Yes') {
+    KV('Manufacturer',    val('genMake'));
+    KV('Model',           val('genModel'));
+    KV('kW Rating',       val('genKW'));
+    KV('Fuel Type',       val('genFuel'));
+    KV('Tank Size (gal)', val('genTank'));
+    KV('Fuel Level (%)',  val('genFuelLevel'));
+    KV('ATS Present',     getRadio('atsPresent'));
+    KV('Gen Condition',   val('genCondition'));
+    if (val('genNotes') !== '—') { L(''); L('  Notes: ' + val('genNotes')); }
+  }
+  L('');
+
+  H1('3. GROUND PAD EQUIPMENT');
+  KV('Pad Type',      val('padType'));
+  KV('Condition',     val('padCondition'));
+  KV('Fencing',       val('fencing'));
+  if (val('padNotes') !== '—') { L(''); L('  Notes: ' + val('padNotes')); }
+  L('');
+  L('  CABINET / UNIT INVENTORY:');
+  const cabRows = document.getElementById('cabinet-list').querySelectorAll('.dynamic-row');
+  if (cabRows.length === 0) { L('  (none logged)'); }
+  else {
+    cabRows.forEach((row, i) => {
+      const sels = row.querySelectorAll('select');
+      const inps = row.querySelectorAll('input[type=text],input[type=number]');
+      const ta   = row.querySelector('textarea');
+      L(`  Unit #${i+1}: ${sels[0]?.value||'—'}`);
+      L(`    Manufacturer: ${inps[0]?.value||'—'}  |  Model: ${inps[1]?.value||'—'}`);
+      L(`    Carrier: ${sels[1]?.value||'—'}`);
+      if (ta?.value) L(`    Notes: ${ta.value}`);
+    });
+  }
+  L('');
+
+  H1('4. H-FRAMES & ICE BRIDGES');
+  const hfRows = document.getElementById('hframe-list').querySelectorAll('.dynamic-row');
+  if (hfRows.length === 0) { L('  (none logged)'); }
+  else {
+    hfRows.forEach((row, i) => {
+      const sels = row.querySelectorAll('select');
+      const inps = row.querySelectorAll('input[type=text],input[type=number]');
+      const ta   = row.querySelector('textarea');
+      L(`  Run #${i+1}: ${inps[0]?.value||'—'} (${sels[0]?.value||'—'})`);
+      L(`    Cable Type: ${sels[1]?.value||'—'}  |  Length: ${inps[1]?.value||'—'} ft  |  # Cables: ${inps[2]?.value||'—'}`);
+      L(`    Route: ${inps[3]?.value||'—'}`);
+      if (ta?.value) L(`    Notes: ${ta.value}`);
+    });
+  }
+  L('');
+
+  H1('5. TOWER MOUNTED EQUIPMENT — LIBERTY/AT&T');
+  KV('Sectors',              val('numSectors'));
+  KV('Liberty Height (AGL)', val('libertyHeight') + ' ft');
+  L('');
+  document.querySelectorAll('#tme-sectors .section-card').forEach((sec, s) => {
+    const title = sec.querySelector('.section-title')?.textContent || `Sector ${s+1}`;
+    L(`  ${title.toUpperCase()}`);
+    sec.querySelector('tbody')?.querySelectorAll('tr').forEach(tr => {
+      const cells = tr.querySelectorAll('td');
+      const eq  = cells[0]?.querySelector('select')?.value || cells[0]?.querySelector('input')?.value || '—';
+      const qty = cells[1]?.querySelector('input')?.value || '—';
+      const ht  = cells[2]?.querySelector('input')?.value || '—';
+      const nt  = cells[3]?.querySelector('input')?.value || '';
+      L(`    * ${eq}  —  Qty: ${qty}  |  ${ht} ft AGL${nt ? '  |  '+nt : ''}`);
+    });
+    L('');
+  });
+
+  H1('6. PHOTO DOCUMENTATION');
+  const totalSlots = Object.values(photoSlots).flat().length;
+  const uploaded   = Object.keys(photoData).length;
+  KV('Required shots',  totalSlots);
+  KV('Photos uploaded', uploaded);
+  KV('Coverage',        Math.round(uploaded/totalSlots*100) + '%');
+  L('');
+  Object.entries(photoSlots).forEach(([grp, labels]) => {
+    L(`  ${grp.replace('photos-','').toUpperCase()}:`);
+    labels.forEach((label, idx) => {
+      const done = photoData[`${grp}-${idx}`] ? '[X]' : '[ ]';
+      L(`    ${done} ${label}`);
+    });
+    L('');
+  });
+
+  H1('7. CERTIFICATION');
+  if (val('finalNotes') !== '—') { L('  Final Notes: ' + val('finalNotes')); L(''); }
+  KV('Surveyor', val('sigName'));
+  KV('Date',     val('sigDate'));
+  L('');
+  L('  By signing above, surveyor certifies all information is accurate.');
+  L('  CONFIDENTIAL — Liberty / AT&T Legacy internal use only.');
+  L('');
+
+  // ── Convert text report to PDF using jsPDF (loaded from CDN) ─
+  // jsPDF is reliable on hosted pages — was only blocked in Claude sandbox
+  const reportText = lines.join('\n');
+
+  function buildWithJsPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'letter' });
+    const PW = 612, PH = 792, ML = 40, MR = 40, MT = 50;
+    const lineH = 13, fontSize = 9;
+    let y = MT;
+
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(fontSize);
+
+    lines.forEach(line => {
+      if (y > PH - 50) {
+        doc.addPage();
+        y = MT;
+        // page header
+        doc.setFillColor(10,22,40);
+        doc.rect(0,0,PW,28,'F');
+        doc.setFillColor(232,160,32);
+        doc.rect(0,27,PW,2,'F');
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(7);
+        doc.setTextColor(232,160,32);
+        doc.text('LIBERTY · AT&T LEGACY — USVI SITE SURVEY', ML, 18);
+        doc.setTextColor(120,145,171);
+        doc.text(`${val('siteId')} | ${val('surveyDate')}`, PW-MR, 18, {align:'right'});
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(fontSize);
+        doc.setTextColor(0,0,0);
+        y = 50;
+      }
+
+      // Style headings vs body
+      if (line.startsWith('───') || line.startsWith('─')) {
+        doc.setDrawColor(74,111,165);
+        doc.setLineWidth(0.5);
+        doc.line(ML, y, PW-MR, y);
+        y += 4;
+        return;
+      }
+      if (line.trim() === line && line.length > 0 && line === line.toUpperCase() && !line.startsWith('*')) {
+        // Section header
+        doc.setFillColor(10,22,40);
+        doc.rect(ML-4, y-9, PW-ML-MR+8, 14, 'F');
+        doc.setFillColor(232,160,32);
+        doc.rect(ML-4, y-9, 3, 14, 'F');
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(9);
+        doc.setTextColor(232,160,32);
+        doc.text(line, ML+4, y);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(fontSize);
+        doc.setTextColor(0,0,0);
+        y += lineH + 2;
+        return;
+      }
+
+      doc.setTextColor(30,30,30);
+      doc.setFont('helvetica', line.startsWith('  ') && !line.startsWith('    ') && line.includes(':') ? 'normal' : 'normal');
+      const wrapped = doc.splitTextToSize(line, PW - ML - MR);
+      wrapped.forEach(wl => {
+        doc.text(wl, ML, y);
+        y += lineH;
+      });
+    });
+
+    // Cover page first
+    doc.insertPage(1);
+    doc.setPage(1);
+    doc.setFillColor(10,22,40); doc.rect(0,0,PW,PH,'F');
+    doc.setFillColor(232,160,32); doc.rect(0,160,PW,4,'F'); doc.rect(0,PH-60,PW,4,'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(13); doc.setTextColor(232,160,32);
+    doc.text('LIBERTY  ·  AT&T LEGACY', PW/2, 120, {align:'center'});
+    doc.setFontSize(30); doc.setTextColor(244,247,251);
+    doc.text('SITE SURVEY', PW/2, 200, {align:'center'});
+    doc.text('EXISTING CONDITIONS', PW/2, 242, {align:'center'});
+    doc.setFontSize(12); doc.setTextColor(74,111,165);
+    doc.text('U.S. VIRGIN ISLANDS', PW/2, 272, {align:'center'});
+    doc.setFillColor(17,34,64);
+    doc.roundedRect(PW/2-160, 310, 320, 160, 4, 4, 'F');
+    const infoRows = [
+      ['SITE ID',     val('siteId')],
+      ['MARKET',      val('market')],
+      ['DATE',        val('surveyDate')],
+      ['SURVEYOR',    val('surveyorName')],
+      ['COMPANY',     val('company')],
+    ];
+    infoRows.forEach(([lbl,v],i) => {
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(120,145,171);
+      doc.text(lbl, PW/2-148, 338+i*24);
+      doc.setFont('helvetica','bold'); doc.setTextColor(244,247,251);
+      doc.text(v||'—', PW/2-50, 338+i*24);
+    });
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(120,145,171);
+    doc.text('CONFIDENTIAL — FOR INTERNAL USE ONLY', PW/2, PH-30, {align:'center'});
+    doc.text('Generated: '+new Date().toLocaleString(), PW/2, PH-18, {align:'center'});
+
+    return doc;
+  }
+
+  function downloadDoc(doc) {
+    const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+    if (isIOS) {
+      // iOS: use blob URL opened via location — most reliable method
+      const blob = doc.output('blob');
+      const url  = URL.createObjectURL(blob);
+      window.location.href = url;
+    } else {
+      doc.save(filename);
+    }
+  }
+
+  // Load jsPDF if not already loaded, then generate
+  if (window.jspdf) {
+    downloadDoc(buildWithJsPDF());
+  } else {
+    const btn = document.getElementById('btn-next');
+    const origText = btn.textContent;
+    btn.textContent = 'Building PDF...';
+    btn.disabled = true;
+
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.onload = () => {
+      btn.textContent = origText;
+      btn.disabled = false;
+      downloadDoc(buildWithJsPDF());
+    };
+    script.onerror = () => {
+      btn.textContent = origText;
+      btn.disabled = false;
+      // Fallback: plain text download
+      const blob = new Blob([reportText], {type:'text/plain'});
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url; a.download = filename.replace('.pdf','.txt');
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      alert('PDF library unavailable — downloaded as text file instead.');
+    };
+    document.head.appendChild(script);
+  }
+}
+
+// init
+updateNav();
+
+// ══════════════════════════════════════════════════
+// SAVE / RESTORE DRAFT  (localStorage)
+// ══════════════════════════════════════════════════
+
+const DRAFT_KEY = 'liberty_usvi_draft';
+
+// ── Collect all form state into a plain object ──
+function collectState() {
+  const state = { ts: new Date().toISOString(), fields: {}, radios: {}, conds: {}, cabinets: [], hframes: [], otherTME: [], sectors: [], numSectors: 0 };
+
+  // Named input / select / textarea fields
+  const ids = [
+    'siteId','market','surveyDate','surveyorName','company','phone',
+    'address','gps','accessType','gateInfo',
+    'towerType','towerHeight','towerOwner','towerCondition','lightingCond','siteNotes',
+    'utilityProvider','wapaAccount','meterNumber','voltage','amperage','meterLocation','meterCondition','mainBreaker','powerNotes',
+    'genMake','genModel','genKW','genFuel','genTank','genFuelLevel','genCondition','genNotes',
+    'padType','padCondition','fencing','padNotes',
+    'numSectors','libertyHeight',
+    'finalNotes','sigName','sigDate'
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) state.fields[id] = el.value;
+  });
+
+  // Radio buttons
+  ['faaLight','genPresent','atsPresent'].forEach(name => {
+    const sel = document.querySelector(`input[name="${name}"]:checked`);
+    state.radios[name] = sel ? sel.value : '';
+  });
+
+  // Condition selectors (hidden inputs)
+  ['towerCondition','meterCondition','genCondition','padCondition'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) state.conds[id] = el.value;
+  });
+
+  // Cabinet rows
+  document.getElementById('cabinet-list').querySelectorAll('.dynamic-row').forEach(row => {
+    const sels = [...row.querySelectorAll('select')].map(s => s.value);
+    const inps = [...row.querySelectorAll('input[type=text],input[type=number]')].map(i => i.value);
+    const ta   = row.querySelector('textarea');
+    const cond = row.querySelector('.cond-opt.selected')?.dataset.val || '';
+    state.cabinets.push({ sels, inps, ta: ta?.value||'', cond });
+  });
+
+  // H-Frame / cable run rows
+  document.getElementById('hframe-list').querySelectorAll('.dynamic-row').forEach((row, idx) => {
+    const sels = [...row.querySelectorAll('select')].map(s => s.value);
+    const inps = [...row.querySelectorAll('input[type=text],input[type=number]')].map(i => i.value);
+    const ta   = row.querySelector('textarea');
+    const cond = row.querySelector('.cond-opt.selected')?.dataset.val || '';
+    const radio = document.querySelector(`input[name="ground-${idx+1}"]:checked`)?.value || '';
+    state.hframes.push({ sels, inps, ta: ta?.value||'', cond, radio });
+  });
+
+  // Other TME rows
+  document.getElementById('other-tme-list').querySelectorAll('.dynamic-row').forEach(row => {
+    const inps = [...row.querySelectorAll('input[type=text],input[type=number]')].map(i => i.value);
+    const ta   = row.querySelector('textarea');
+    state.otherTME.push({ inps, ta: ta?.value||'' });
+  });
+
+  // TME sector rows
+  state.numSectors = parseInt(document.getElementById('numSectors')?.value) || 0;
+  document.querySelectorAll('#tme-sectors .section-card').forEach((sec, s) => {
+    const azEl  = sec.querySelectorAll('input[type=number]')[0];
+    const htEl  = sec.querySelectorAll('input[type=number]')[1];
+    const cond  = sec.querySelector('.cond-opt.selected')?.dataset.val || '';
+    const rows  = [];
+    sec.querySelector('tbody')?.querySelectorAll('tr').forEach(tr => {
+      const cells = tr.querySelectorAll('td');
+      rows.push({
+        type:  cells[0]?.querySelector('select')?.value || '',
+        qty:   cells[1]?.querySelector('input')?.value  || '',
+        ht:    cells[2]?.querySelector('input')?.value  || '',
+        notes: cells[3]?.querySelector('input')?.value  || ''
+      });
+    });
+    state.sectors.push({ az: azEl?.value||'', ht: htEl?.value||'', cond, rows });
+  });
+
+  return state;
+}
+
+// ── Save to localStorage ─────────────────────────
+function saveDraft() {
+  try {
+    const state = collectState();
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
+    showToast('✓ Draft Saved');
+  } catch(e) {
+    showToast('⚠ Could not save draft');
+  }
+}
+
+// ── Toast notification ───────────────────────────
+function showToast(msg, color='#27ae60') {
+  const t = document.getElementById('draft-toast');
+  t.textContent = msg;
+  t.style.background = color;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2500);
+}
+
+// ── Check for saved draft on load ───────────────
+function checkForDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    const siteId = state.fields?.siteId || 'Unknown Site';
+    const ts = state.ts ? new Date(state.ts).toLocaleString() : '';
+    const banner = document.getElementById('restore-banner');
+    document.getElementById('restore-info').textContent = `Site: ${siteId}  |  Saved: ${ts}`;
+    banner.style.display = 'flex';
+    // Store state for restore
+    window._pendingDraft = state;
+  } catch(e) {}
+}
+
+function dismissRestore() {
+  document.getElementById('restore-banner').style.display = 'none';
+  window._pendingDraft = null;
+}
+
+// ── Restore state from draft object ─────────────
+function restoreDraft() {
+  const state = window._pendingDraft;
+  if (!state) return;
+  document.getElementById('restore-banner').style.display = 'none';
+
+  // Restore named fields
+  Object.entries(state.fields || {}).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  });
+
+  // Restore radios
+  Object.entries(state.radios || {}).forEach(([name, val]) => {
+    if (!val) return;
+    const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
+    if (el) { el.checked = true; el.dispatchEvent(new Event('change')); }
+  });
+
+  // Restore condition selectors
+  Object.entries(state.conds || {}).forEach(([id, val]) => {
+    if (!val) return;
+    const hidden = document.getElementById(id);
+    if (hidden) hidden.value = val;
+    // Find the parent cond-select and highlight the right option
+    document.querySelectorAll('.cond-select').forEach(group => {
+      if (group.dataset.field === id) {
+        group.querySelectorAll('.cond-opt').forEach(opt => {
+          opt.classList.toggle('selected', opt.dataset.val === val);
+        });
+      }
+    });
+  });
+
+  // Restore cabinets
+  document.getElementById('cabinet-list').innerHTML = '';
+  cabinetCount = 0;
+  (state.cabinets || []).forEach(data => {
+    addCabinet();
+    const row = document.getElementById(`cab-${cabinetCount}`);
+    const sels = row.querySelectorAll('select');
+    const inps = row.querySelectorAll('input[type=text],input[type=number]');
+    const ta   = row.querySelector('textarea');
+    data.sels.forEach((v,i) => { if(sels[i]) sels[i].value = v; });
+    data.inps.forEach((v,i) => { if(inps[i]) inps[i].value = v; });
+    if (ta) ta.value = data.ta;
+    if (data.cond) {
+      row.querySelectorAll('.cond-opt').forEach(o => o.classList.toggle('selected', o.dataset.val === data.cond));
+    }
+  });
+
+  // Restore H-frames
+  document.getElementById('hframe-list').innerHTML = '';
+  hframeCount = 0;
+  (state.hframes || []).forEach(data => {
+    addHFrame();
+    const row = document.getElementById(`hf-${hframeCount}`);
+    const sels = row.querySelectorAll('select');
+    const inps = row.querySelectorAll('input[type=text],input[type=number]');
+    const ta   = row.querySelector('textarea');
+    data.sels.forEach((v,i) => { if(sels[i]) sels[i].value = v; });
+    data.inps.forEach((v,i) => { if(inps[i]) inps[i].value = v; });
+    if (ta) ta.value = data.ta;
+    if (data.cond) {
+      row.querySelectorAll('.cond-opt').forEach(o => o.classList.toggle('selected', o.dataset.val === data.cond));
+    }
+    if (data.radio) {
+      const rEl = row.querySelector(`input[value="${data.radio}"]`);
+      if (rEl) rEl.checked = true;
+    }
+  });
+
+  // Restore TME sectors
+  if (state.numSectors) {
+    const sel = document.getElementById('numSectors');
+    if (sel) { sel.value = state.numSectors; buildTME(); }
+    setTimeout(() => {
+      document.querySelectorAll('#tme-sectors .section-card').forEach((sec, s) => {
+        const data = state.sectors[s];
+        if (!data) return;
+        const numInps = sec.querySelectorAll('input[type=number]');
+        if (numInps[0]) numInps[0].value = data.az;
+        if (numInps[1]) numInps[1].value = data.ht;
+        if (data.cond) {
+          sec.querySelectorAll('.cond-opt').forEach(o => o.classList.toggle('selected', o.dataset.val === data.cond));
+        }
+        // Clear pre-populated rows, add saved rows
+        const tbody = sec.querySelector('tbody');
+        if (tbody) {
+          tbody.innerHTML = '';
+          data.rows.forEach(r => {
+            addTMERow(s, r.type);
+            const tr = tbody.lastElementChild;
+            if (!tr) return;
+            const cells = tr.querySelectorAll('td');
+            if (cells[1]?.querySelector('input')) cells[1].querySelector('input').value = r.qty;
+            if (cells[2]?.querySelector('input')) cells[2].querySelector('input').value = r.ht;
+            if (cells[3]?.querySelector('input')) cells[3].querySelector('input').value = r.notes;
+          });
+        }
+      });
+    }, 100);
+  }
+
+  // Restore other TME
+  document.getElementById('other-tme-list').innerHTML = '';
+  otherTMECount = 0;
+  (state.otherTME || []).forEach(data => {
+    addOtherTME();
+    const row = document.getElementById(`otme-${otherTMECount}`);
+    const inps = row.querySelectorAll('input[type=text],input[type=number]');
+    const ta   = row.querySelector('textarea');
+    data.inps.forEach((v,i) => { if(inps[i]) inps[i].value = v; });
+    if (ta) ta.value = data.ta;
+  });
+
+  window._pendingDraft = null;
+  showToast('✓ Draft Restored');
+}
+
+// ── Auto-save every 60 seconds ───────────────────
+setInterval(() => {
+  try {
+    const state = collectState();
+    // Only auto-save if site ID has been entered
+    if (state.fields.siteId) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
+    }
+  } catch(e) {}
+}, 60000);
+
+// ── Clear draft after successful PDF export ──────
+const _origGeneratePDF = generatePDF;
+// (called after PDF is generated — keep draft for reference)
+
+// Check for draft on startup
+window.addEventListener('DOMContentLoaded', checkForDraft);
+
+
+// ── PWA Install & Service Worker ──────────────────────
+
+// ── Register Service Worker ─────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+
+// ── Android Install Prompt ──────────────────────────────────
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+function showInstallBanner() {
+  if (document.getElementById('install-banner')) return;
+  const b = document.createElement('div');
+  b.id = 'install-banner';
+  b.style.cssText = 'position:fixed;bottom:75px;left:50%;transform:translateX(-50%);background:#e8a020;color:#0a1628;font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;padding:11px 20px;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5);cursor:pointer;z-index:200;white-space:nowrap;';
+  b.innerHTML = '📲 &nbsp;Install App on This Device &nbsp;<span id="ib-x" style="opacity:.6;font-size:16px;">✕</span>';
+  b.addEventListener('click', async e => {
+    if (e.target.id==='ib-x'){b.remove();return;}
+    if (deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; b.remove(); }
+  });
+  document.body.appendChild(b);
+}
+
+// ── iOS Install Hint ────────────────────────────────────────
+var _installIsIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+var _installIsStandalone = window.matchMedia('(display-mode:standalone)').matches || navigator.standalone;
+if (_installIsIOS && !_installIsStandalone) {
+  setTimeout(()=>{
+    const h = document.createElement('div');
+    h.style.cssText = 'position:fixed;bottom:75px;left:50%;transform:translateX(-50%);background:#112240;border:1px solid #e8a020;color:#f4f7fb;font-family:Barlow,sans-serif;font-size:13px;padding:12px 16px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.6);z-index:200;max-width:290px;text-align:center;line-height:1.5;';
+    h.innerHTML = '<div style="color:#e8a020;font-weight:700;margin-bottom:4px;">📲 Install this App</div>Tap <b>Share ↑</b> then <b>"Add to Home Screen"</b> to install on your iPhone.<div onclick="this.parentElement.remove()" style="margin-top:8px;color:#7a91ab;font-size:11px;cursor:pointer;">Dismiss</div>';
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(),12000);
+  },2500);
+}
+</script>
+</body>
+</html>
